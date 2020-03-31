@@ -7,7 +7,10 @@ namespace BeezyBackend.Repository.Configuration
 {
     public class APIConfiguration : ConfigurationBase
     {
-                
+        public string GetDatabaseConnStringFromConfig(string connectionKey)
+        {
+            return GetConfiguration().GetConnectionString(connectionKey);
+        }
 
         public string GetEndpointDataFromConfig(string connectionKey)
         {

@@ -6,5 +6,8 @@ namespace BeezyBackend.Service.Interfaces
 {
     public interface IDocumentaryService
     {
+        List<string> GetAllDocumentaries();
+
+        List<string> GetDocumentaryByType();
     }
 }

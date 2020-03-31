@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>    
+    <ProjectReference Include="..\BeezyBackEnd.Repository\BeezyBackend.Repository.csproj" />    
     <ProjectReference Include="..\BeezyBackend.Service\BeezyBackend.Service.csproj" />    
   </ItemGroup>
 

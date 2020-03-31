@@ -3,75 +3,174 @@ using System.Collections.Generic;
 using System.Text;
 using BeezyBackend.Service.Interfaces;
 using BeezyBackend.Repository.Data;
+using BeezyBackend.Data.Entitites;
 using System.Linq;
 
 namespace BeezyBackend.Service
 {
     public class MoviesService : IMoviesService
     {
-        #region Variables
-        private string _movieConnectionKey = "movieApi";
+        #region Variables        
+
         private string _genreConnectionKey = "genreApi";
-        private string _genrePageConnectionKey = "genrePagewiseApi";
-        private int _smallScreen = 0;
-        private int _bigScreen = 0;
-        private int _noOfWeeks = 0;        
-        private bool _autoSuggestions;
+        private string _moviePageConnectionKey = "moviePagewiseApi";
+
         #endregion
-        public List<IntelligentBillboard> GetMoviesBasedonRooms(int smallScreens, int bigScreens, int noOfWeeks, bool autoSuggestions)
+
+        #region Methods
+
+        /// <summary>
+        /// Calculates the total count of movies as per weeks and returns a billboard
+        /// </summary>
+        /// <param name="smallScreens"></param>
+        /// <param name="bigScreens"></param>
+        /// <param name="noOfWeeks"></param>
+        /// <param name="autoSuggestions"></param>
+        /// <returns></returns>
+        public List<SmartBillboard> GetMoviesBasedonRooms(int smallScreens, int bigScreens, int noOfWeeks, bool autoSuggestions)
         {
-            _smallScreen = smallScreens;
-            _bigScreen = bigScreens;
-            _noOfWeeks = noOfWeeks;
-            _autoSuggestions = autoSuggestions;
+            int totalSmallScreens = smallScreens * noOfWeeks;
+            int totalBigScreens = bigScreens * noOfWeeks;
 
-             //per day same small  big screens
-            return new List<IntelligentBillboard>();
-        }
+            var lstAllMovies = GetAllMovies(totalBigScreens);
 
-        public void GetMovies(int noOfMovies)
-        {
-            List<string> lstAllMovies = new List<string>();
-            int pageId = 1;
+            var lstPopularMovies = FilterMoviesByPopularity(lstAllMovies, totalBigScreens);
+            var lstMinorityGenres = GetAllGenresAndFilterByMinority(lstAllMovies, totalSmallScreens);
 
-            //var initialLoad = CallApi(_movieConnectionKey);
-            //pageCount = initialLoad.total_pages;
-
-
-
-            while (lstAllMovies.Count  < noOfMovies)
+            if (autoSuggestions)
             {
-                //    string urlParams = GetUrlParameters(popularityOrder, page, filteredGenres);
-                //    DiscoveredMovies movies = APICallHelper.RunAsync<DiscoveredMovies>(BaseUrl, urlParams.ToString()).GetAwaiter().GetResult();
-                //    if (movies.TotalResults < numOfMovies)
-                //        throw new Exception("There aren't enough movies in the database.");
-                var output = CallApi(_genrePageConnectionKey, pageId);
-                //lstAllMovies.AddRange(output.results);
-
+                //    var result = (from s in _context.Session select s
+                //                  //join r in _context.Room on r.Id equals s.RoomId
+                //                  //join m in _context.Movie on m.Id equals s.MovieId
+                //                  //select new
+                //                  //{
+                //                  //}
+                //                  ).ToList();
             }
 
-            
+            return GenerateBillBoard(lstPopularMovies, lstMinorityGenres);
         }
 
-        private MovieDBJson CallApi(string connection,int pageId)
+        /// <summary>
+        /// Gets the  set of  movies
+        /// </summary>
+        /// <param name="noOfMovies"></param>
+        /// <returns></returns>
+        public List<MovieDetails> GetAllMovies(int noOfMovies)
         {
-            return ExternalAPIService.GetSpecifiedListFromMovieWebAPI<MovieDBJson>(connection, pageId).GetAwaiter().GetResult();
+            try
+            {
+                List<MovieDetails> lstAllMovies = new List<MovieDetails>();
+                int pageId = 1;
+
+                while (lstAllMovies.Count < noOfMovies)
+                {
+                    var output = CallApi(_moviePageConnectionKey, pageId);
+                    lstAllMovies.AddRange(output.results.Select(x => new MovieDetails
+                    {
+                        popularity = x.popularity,
+                        vote_count = x.vote_count,
+                        video = x.video,
+                        poster_path = x.poster_path,
+                        id = x.id,
+                        adult = x.adult,
+                        backdrop_path = x.backdrop_path,
+                        original_language = x.original_language,
+                        original_title = x.original_title,
+                        genre_ids = x.genre_ids,
+                        title = x.title,
+                        vote_average = x.vote_average,
+                        overview = x.overview,
+                        release_date = x.release_date
+                    }));
+                    pageId++;
+                }
+
+                return lstAllMovies;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
-        public void GetAllGenres()
+
+        /// <summary>
+        /// Minority is set in the enum.Filters as per enum and returns list
+        /// </summary>
+        /// <param name="lstAllMovies"></param>
+        /// <param name="noOfMovies"></param>
+        /// <returns></returns>
+        public List<MovieDetails> GetAllGenresAndFilterByMinority(List<MovieDetails> lstAllMovies, int noOfMovies)
         {
-            var genreList = ExternalAPIService.GetSpecifiedListFromMovieWebAPI<GenreDBJson>(_genreConnectionKey,0);
+            var genreList = ExternalAPIService.GetSpecifiedListFromMovieWebAPI<GenreDBJson>(_genreConnectionKey, 0);
+
+            List<MovieDetails> minorityGenres = new List<MovieDetails>();
+            minorityGenres.AddRange(lstAllMovies.Where(x => x.genre_ids.Contains((int)MinorityGenre.Documentary)
+                                || x.genre_ids.Contains((int)MinorityGenre.Fantasy)
+                                || x.genre_ids.Contains((int)MinorityGenre.History)
+                                || x.genre_ids.Contains((int)MinorityGenre.Music)
+                                || x.genre_ids.Contains((int)MinorityGenre.ScienceFiction)
+                                || x.genre_ids.Contains((int)MinorityGenre.War))
+                .Select(x => new MovieDetails
+                {
+                    popularity = x.popularity,
+                    vote_count = x.vote_count,
+                    video = x.video,
+                    poster_path = x.poster_path,
+                    id = x.id,
+                    adult = x.adult,
+                    backdrop_path = x.backdrop_path,
+                    original_language = x.original_language,
+                    original_title = x.original_title,
+                    genre_ids = x.genre_ids,
+                    title = x.title,
+                    vote_average = x.vote_average,
+                    overview = x.overview,
+                    release_date = x.release_date
+                }));
+
+            return minorityGenres.Take(noOfMovies).ToList();
         }
 
-
-
-        public void SortBlockbusterGenresForBigRoom()
+        /// <summary>
+        /// async call to external Movie Db api API 
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="pageId"></param>
+        /// <returns></returns>
+        private MovieDBAPI CallApi(string connection, int pageId)
         {
-            throw new NotImplementedException();
+            return ExternalAPIService.GetSpecifiedListFromMovieWebAPI<MovieDBAPI>(connection, pageId).GetAwaiter().GetResult();
         }
 
-        public void SortMinorityGenresForSmallRoom()
+        /// <summary>
+        /// Sorts as per popularity rating
+        /// </summary>
+        /// <param name="lstAllMovies"></param>
+        /// <param name="noOfMovies"></param>
+        /// <returns></returns>
+        private List<MovieDetails> FilterMoviesByPopularity(List<MovieDetails> lstAllMovies, int noOfMovies)
         {
-            throw new NotImplementedException();
+            return lstAllMovies.OrderByDescending(x => x.popularity).Take(noOfMovies).ToList();
         }
+
+        /// <summary>
+        /// Genrates final billboard for theatre managers
+        /// </summary>
+        /// <param name="lstMovie"></param>
+        /// <param name="lstMinority"></param>
+        /// <returns></returns>
+        private List<SmartBillboard> GenerateBillBoard(List<MovieDetails> lstMovie, List<MovieDetails> lstMinority)
+        {
+            List<SmartBillboard> lstSmart = new List<SmartBillboard>();
+
+            lstSmart.AddRange(lstMovie.Select(x => new SmartBillboard { Title = x.title, Type = "Blockbuster", Room = "Big", SeatsSold = "N/A" }));
+            lstSmart.AddRange(lstMinority.Select(x => new SmartBillboard { Title = x.title, Type = "Minority", Room = "Small", SeatsSold = "N/A" }));
+
+            return lstSmart;
+        }
+        
+        #endregion
     }
 }

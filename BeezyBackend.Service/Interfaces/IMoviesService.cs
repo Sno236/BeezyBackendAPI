@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BeezyBackend.Repository.Data;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -16,12 +17,11 @@ namespace BeezyBackend.Service.Interfaces
     }
     public interface IMoviesService
     {
-        List<IntelligentBillboard> GetMoviesBasedonRooms(int smallScreens, int bigScreens, int noOfWeeks, bool autoSuggestions);
-        void SortBlockbusterGenresForBigRoom();
-        void SortMinorityGenresForSmallRoom();
+        List<SmartBillboard> GetMoviesBasedonRooms(int smallScreens, int bigScreens, int noOfWeeks, bool autoSuggestions);
 
-        void GetAllMovies();
-        void GetAllGenres();
+        List<MovieDetails> GetAllMovies(int noOfMovies);
+
+        List<MovieDetails> GetAllGenresAndFilterByMinority(List<MovieDetails> lstAllMovies,int noOfMovies);
 
 
     }

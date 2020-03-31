@@ -8,11 +8,15 @@ using Swashbuckle.Swagger;
 using Microsoft.Extensions.Hosting;
 using BeezyBackend.Service.Interfaces;
 using BeezyBackend.Service;
+using Microsoft.EntityFrameworkCore;
+using BeezyBackend.Repository.Data;
+using BeezyBackend.Repository.Configuration;
 
 namespace BeezyBackendAPI
 {
     public class Startup
     {
+        private string _movieDBConnectionKey = "movieApi";
         public IConfiguration Configuration { get; }
 
         public Startup(IConfiguration configuration) => Configuration = configuration;
@@ -20,21 +24,13 @@ namespace BeezyBackendAPI
         public void ConfigureServices(IServiceCollection services)
         {
 
-            //services.AddDbContext<beezycinemaContext>
-            //    (opt => opt.UseSqlServer(Configuration["Data:CommandAPIConnection:ConectionString"]));
+            services.AddDbContext<DataContext>
+                (opt => opt.UseSqlServer(new APIConfiguration().GetEndpointDataFromConfig(_movieDBConnectionKey))); ;
+
             services.AddScoped<IMoviesService,MoviesService >();
             services.AddScoped<ITVShowService, TVShowService>();
             services.AddScoped<IDocumentaryService,DocumentaryService >();
             services.AddMvc(options => options.EnableEndpointRouting = false).SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
-
-            //register Mapper
-            //var config = new AutoMapper.MapperConfiguration(a =>
-            //    {
-            //        a.AddProfile(new Mapper());
-            //    }
-            //);
-            //var mapper = config.CreateMapper();
-            //services.AddSingleton(mapper);
 
             //register swagger
             services.AddSwaggerGen(c =>

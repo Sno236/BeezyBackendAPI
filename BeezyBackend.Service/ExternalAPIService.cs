@@ -18,7 +18,7 @@ namespace BeezyBackend.Service
             if (isPaging == 0)
                 return apiConn;
             else
-                return apiConn.Replace("", isPaging.ToString());
+                return apiConn.Replace("##", isPaging.ToString());
         }
 
         public static async Task<T> GetSpecifiedListFromMovieWebAPI<T>(string connectionString, int isPaging)

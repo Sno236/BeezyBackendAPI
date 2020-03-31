@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using BeezyBackend.Repository.Data;
 using AutoMapper;
-using BeezyBackendAPI.Models;
-using BeezyBackendAPI.ViewModels;
 
-namespace BeezyBackendAPI
+namespace BeezyBackend.Service
 {
     public class Mapper : AutoMapper.Profile
     {
         //create map and use the created map
         public Mapper()
         {
-            CreateMap<Movie, MovieViewModel>()
-                .ReverseMap();
+            CreateMap<MovieDetails, IntelligentBillboard>()
+                 .ForMember(dest => dest.Type, opts => opts.MapFrom(src => src.title));
         }
     }
 }

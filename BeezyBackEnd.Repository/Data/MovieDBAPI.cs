@@ -4,7 +4,7 @@ using System.Text;
 
 namespace BeezyBackend.Repository.Data
 {
-    public class Result
+    public class MovieDetails
     {
         public double popularity { get; set; }
         public int vote_count { get; set; }
@@ -22,11 +22,11 @@ namespace BeezyBackend.Repository.Data
         public string release_date { get; set; }
     }
 
-    public class MovieDBJson
+    public class MovieDBAPI
     {
         public int page { get; set; }
         public int total_results { get; set; }
         public int total_pages { get; set; }
-        public List<Result> results { get; set; }
+        public List<MovieDetails> results { get; set; }
     }
 }
