@@ -14,7 +14,7 @@ Running the application :
     * Microsoft.EntityFrameworkCore.SqlServer  Version="3.1.3" 
     * Microsoft.Extensions.Configuration.Json  Version="3.1.3"  
   
-3) A swagger UI will enable the user to enter the input parameters.
-
+3) A swagger UI  will enable the user to enter the input parameters.
+  
 
 
