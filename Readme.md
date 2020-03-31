@@ -22,3 +22,19 @@ Ensure that nuget packages are installed after cloning the project in case of an
 A swagger UI will enable the user to enter the input parameters.
 
 ![image](https://user-images.githubusercontent.com/60900869/78076020-e65eec00-73a5-11ea-8ec4-20a08417f12a.png)
+
+Controllers :
+BeezyBackend.Web\Controllers\TheatreManagersController.cs
+BeezyBackend.Web\Controllers\ViewersController.cs
+
+Interfaces:
+BeezyBackend.Service.Interfaces
+
+Services project:
+BeezyBackend.Service
+
+Repository project  : BeezyBackend.Repository
+
+Entities/EF classes here : BeezyBackend.Data
+
+
