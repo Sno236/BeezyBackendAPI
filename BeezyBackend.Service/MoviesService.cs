@@ -10,6 +10,11 @@ namespace BeezyBackend.Service
 {
     public class MoviesService : IMoviesService
     {
+        private readonly DataContext _context;
+        public MoviesService(DataContext context)
+        {
+            _context = context;
+        }
         #region Variables        
 
         private string _genreConnectionKey = "genreApi";
@@ -37,18 +42,7 @@ namespace BeezyBackend.Service
             var lstPopularMovies = FilterMoviesByPopularity(lstAllMovies, totalBigScreens);
             var lstMinorityGenres = GetAllGenresAndFilterByMinority(lstAllMovies, totalSmallScreens);
 
-            if (autoSuggestions)
-            {
-                //    var result = (from s in _context.Session select s
-                //                  //join r in _context.Room on r.Id equals s.RoomId
-                //                  //join m in _context.Movie on m.Id equals s.MovieId
-                //                  //select new
-                //                  //{
-                //                  //}
-                //                  ).ToList();
-            }
-
-            return GenerateBillBoard(lstPopularMovies, lstMinorityGenres);
+            return GenerateBillBoard(lstPopularMovies, lstMinorityGenres, autoSuggestions);
         }
 
         /// <summary>
@@ -161,16 +155,50 @@ namespace BeezyBackend.Service
         /// <param name="lstMovie"></param>
         /// <param name="lstMinority"></param>
         /// <returns></returns>
-        private List<SmartBillboard> GenerateBillBoard(List<MovieDetails> lstMovie, List<MovieDetails> lstMinority)
+        private List<SmartBillboard> GenerateBillBoard(List<MovieDetails> lstMovie, List<MovieDetails> lstMinority, bool autoSuggestions)
         {
             List<SmartBillboard> lstSmart = new List<SmartBillboard>();
 
             lstSmart.AddRange(lstMovie.Select(x => new SmartBillboard { Title = x.title, Type = "Blockbuster", Room = "Big", SeatsSold = "N/A" }));
             lstSmart.AddRange(lstMinority.Select(x => new SmartBillboard { Title = x.title, Type = "Minority", Room = "Small", SeatsSold = "N/A" }));
 
+            if (autoSuggestions)
+            {
+                var lstSuggestion = GetSuccessfulMoviesInCity();
+                lstSmart.AddRange(lstSuggestion);
+            }
             return lstSmart;
         }
-        
+
+        /// <summary>
+        /// Call if user needs recommendation additionally on top of entered filter criteria
+        /// </summary>
+        /// <returns></returns>
+        public List<SmartBillboard> GetSuccessfulMoviesInCity()
+        {
+            var temp = (from s in _context.Session
+                        join r in _context.Room on s.RoomId equals r.Id
+                        join m in _context.Movie on s.MovieId equals m.Id
+                        select new
+                        {
+                            r.Size,
+                            m.OriginalTitle,
+                            s.SeatsSold
+                        }).ToList();
+
+            var suggestedList = (from t in temp
+                                 group t by new { t.OriginalTitle, t.Size } into g
+                                 select new SmartBillboard
+                                 {
+                                     Title = g.Key.OriginalTitle,
+                                     Room = g.Key.Size,
+                                     Type = "Suggestion",
+                                     SeatsSold = (from v in g select v.SeatsSold).Max().ToString()
+                                 }).ToList();
+            return suggestedList;
+        }
+
+
         #endregion
     }
 }

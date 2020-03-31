@@ -23,6 +23,6 @@ namespace BeezyBackend.Service.Interfaces
 
         List<MovieDetails> GetAllGenresAndFilterByMinority(List<MovieDetails> lstAllMovies,int noOfMovies);
 
-
+        List<SmartBillboard> GetSuccessfulMoviesInCity();
     }
 }
