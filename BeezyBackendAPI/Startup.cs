@@ -16,7 +16,7 @@ namespace BeezyBackendAPI
 {
     public class Startup
     {
-        private string _movieDBConnectionKey = "_movieDBConnectionKey";
+        private string _movieDBConnectionKey = "movieDBConnectionKey";
         public IConfiguration Configuration { get; }
 
         public Startup(IConfiguration configuration) => Configuration = configuration;
